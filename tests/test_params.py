@@ -85,6 +85,22 @@ class TestParamProbe:
     def test__getitem__(self, probe):
         assert probe["pos_only"].name == "pos_only"
 
+    def test__delitem__(self, probe):
+        assert len(probe._dict) == 5
+        del probe["pos_only"]
+        assert len(probe._dict) == 4
+        del probe["pos_or_kw"]
+        assert len(probe._dict) == 3
+        del probe["var_pos"]
+        assert len(probe._dict) == 2
+        del probe["kw_only"]
+        assert len(probe._dict) == 1
+        del probe["var_kw"]
+        assert len(probe._dict) == 0
+
+        with pytest.raises(KeyError):
+            del probe["not_a_param"]
+
     def test_get_count(self, probe):
         assert probe.get_count("POSITIONAL_ONLY") == 1
         assert probe.get_count("POSITIONAL_OR_KEYWORD") == 1

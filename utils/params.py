@@ -115,11 +115,19 @@ class ParamProbe:
         if 'self' in parameters and remove_self:
             del parameters['self']
 
-        self.parameters = tuple(
+        # Not assigned to instance, dynamic property instead.
+        parameters = tuple(
             Param(inspect_param)
             for inspect_param in parameters.values()
         )
-        self._dict: Dict[str, Param] = {param.name: param for param in self.parameters}
+        self._dict: Dict[str, Param] = {param.name: param for param in parameters}
+
+    @property
+    def parameters(self) -> Tuple[Param, ...]:
+        """
+        Dynamic so __delitem__ only have to modify self._dict
+        """
+        return tuple(self._dict.values())
 
     @property
     def instance(self) -> Any:
@@ -225,15 +233,19 @@ class ParamProbe:
             f"and parameter kind groups, which include `ALL_POSITIONAL`, `ALL_KEYWORD`, `ALL_PARAMETERS`."
         ))
 
-    def __getitem__(self, name: str) -> Union[Param, Tuple[Param, ...]]:
-        result = self._retrieve_parameters(name)
+    def __getitem__(self, key: str) -> Union[Param, Tuple[Param, ...]]:
+        result = self._retrieve_parameters(key)
 
         if result == ():
-            raise KeyError(name)
+            raise KeyError(key)
         elif len(result) == 1:
             return result[0]
         else:
             return result
+
+    def __delitem__(self, key: str) -> None:
+        for param in self._retrieve_parameters(key):
+            del self._dict[param.name]
 
     def get(self, key: str, default: Any = None) -> Union[Param, Tuple[Param, ...]]:
         try:
