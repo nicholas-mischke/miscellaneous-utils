@@ -1,6 +1,9 @@
 # For testing code snippets
 playground.py
 
+# VSCode
+tempCodeRunnerFile.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
