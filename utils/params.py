@@ -94,7 +94,10 @@ class ParamProbe:
         """
 
         self.func = func
-        self.func_name = func.__name__
+        try:
+            self.func_name = func.__name__
+        except AttributeError: # Callable class
+            self.func_name = func.__class__.__name__
 
         # Note on odd behavior:
         # class SomeClass:

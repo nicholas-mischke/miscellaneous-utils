@@ -11,6 +11,15 @@ class TestParamProbe:
     def method_probe(self, some_method):
         return ParamProbe(some_method)
 
+    @pytest.fixture
+    def callable_class_probe(self, some_callable_class):
+        return ParamProbe(some_callable_class)
+
+    def test_func_name(self, probe, method_probe, callable_class_probe):
+        assert probe.func_name == "some_func"
+        assert method_probe.func_name == "some_method"
+        assert callable_class_probe.func_name == "SomeClass"
+
     def test_instance(self, probe, method_probe):
         assert probe.instance is None
         assert str(method_probe.instance.__class__.__name__) == "SomeClass"

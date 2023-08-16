@@ -12,3 +12,10 @@ def some_method():
         def some_method(self, pos_only, /, pos_or_kw, *var_pos, kw_only, **var_kw):
             ...
     return SomeClass().some_method
+
+@pytest.fixture
+def some_callable_class():
+    class SomeClass:
+        def __call__(self, pos_only, /, pos_or_kw, *var_pos, kw_only, **var_kw):
+            ...
+    return SomeClass()

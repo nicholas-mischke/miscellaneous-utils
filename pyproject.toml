@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "miscellaneous-utils"
-version = "0.1.2"
+version = "0.1.3"
 description = ""
 authors = ["Nicholas Mischke <nmischkework@proton.me>"]
 readme = "README.md"
