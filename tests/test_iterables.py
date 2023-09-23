@@ -1,6 +1,12 @@
 import pytest
-from utils.iterables import arg_to_iter, chunk_iter, all_indicies, sort_list_by_key
-
+from miscellaneous_utilities.iterables import (
+    arg_to_iter,
+    chunk_iter,
+    all_indicies,
+    sort_list_by_key,
+    flatten,
+    sort_list_by_attr,
+)
 
 
 @pytest.mark.parametrize(
@@ -9,13 +15,14 @@ from utils.iterables import arg_to_iter, chunk_iter, all_indicies, sort_list_by_
         (None, []),
         ({"key": "value"}, [{"key": "value"}]),
         ("hello", ["hello"]),
-        ([1, 2, 3], [1, 2, 3]), # already an iterable
+        ([1, 2, 3], [1, 2, 3]),  # already an iterable
         (42, [42]),
         ((), ()),  # empty tuple should be returned as is
     ],
 )
 def test_arg_to_iter(arg, expected):
     assert arg_to_iter(arg) == expected
+
 
 def test_chunk_iter():
     some_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -33,6 +40,7 @@ def test_chunk_iter():
 )
 def test_all_indicies(iterable, obj, expected):
     assert all_indicies(iterable, obj) == expected
+
 
 def test_all_indices_errors():
     with pytest.raises(AttributeError):
@@ -91,3 +99,28 @@ def test_all_indices_errors():
 )
 def test_sort_list_by_key(lst, key, reverse, expected):
     assert sort_list_by_key(lst, key, reverse) == expected
+
+
+@pytest.mark.parametrize(
+    "nested_list, expected",
+    [
+        ([], []),  # Empty list
+        ([1, 2, 3], [1, 2, 3]),  # Already flat
+        ([[1, 2], [3, 4]], [1, 2, 3, 4]),  # Two-level nesting
+        ([1, [2, [3, 4]]], [1, 2, 3, 4]),  # Multi-level nesting
+    ],
+)
+def test_flatten(nested_list, expected):
+    assert list(flatten(nested_list)) == expected
+
+
+def test_sort_list_by_attr():
+    class Person:
+        def __init__(self, name: str, age: int):
+            self.name = name
+            self.age = age
+
+    people = [Person("Alice", 30), Person("Bob", 25), Person("Charlie", 35)]
+    sorted_people = sort_list_by_attr(people, "age")
+
+    assert [p.age for p in sorted_people] == [25, 30, 35]

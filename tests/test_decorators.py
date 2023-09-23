@@ -1,11 +1,10 @@
-# trunk-ignore(ruff/F401)
 import pytest
 
 from pathlib import Path
 import sys
 import importlib.util
 
-from utils.decorators import selfie, export
+from miscellaneous_utilities.decorators import selfie, export
 
 
 def test_selfie():
@@ -15,10 +14,16 @@ def test_selfie():
             # self.arg1 and self.arg3 are set automatically
             # self.arg2 is ignored due to the decorator argument
             pass
-
     obj = TestClass(*(1, 2, 3))
-
     assert (obj.arg1, hasattr(obj, "arg2"), obj.arg3) == (1, False, 3)
+
+    # @selfie, instead of @selfie()
+    class TestClass:
+        @selfie
+        def __init__(self, a, b, c):
+            ...
+    obj = TestClass(*(1, 2, 3))
+    assert (obj.a, obj.b, obj.c) == (1, 2, 3)
 
 
 @pytest.mark.parametrize(
@@ -34,3 +39,12 @@ def test_export(module_name: str, contains: bool):
 
     # Check the presence/absence of MyClass in the __all__ attribute based on the contains parameter
     assert ("MyClass" in getattr(module, "__all__", [])) == contains
+
+if __name__ == "__main__":
+    from pathlib import Path
+    from pprint import pprint
+
+    path = Path(__file__).absolute()
+
+    # pytest.main([str(path)])
+    pytest.main([f"{str(path)}::test_selfie"])

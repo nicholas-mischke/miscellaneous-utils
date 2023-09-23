@@ -1,5 +1,5 @@
 
-from utils import export
+from miscellaneous_utilities import export
 
 @export
 class MyClass:

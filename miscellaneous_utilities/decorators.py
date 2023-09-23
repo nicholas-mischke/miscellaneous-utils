@@ -3,8 +3,7 @@ import functools
 from typing import Any, Callable
 import sys
 
-from utils.params import ParamProbe
-
+from miscellaneous_utilities.params import ArgMutator
 
 def selfie(*ignore_parameters: str) -> Callable:
     """
@@ -29,17 +28,23 @@ def selfie(*ignore_parameters: str) -> Callable:
             # self.arg2 is ignored due to the decorator argument
             ...
     """
+    # Determine if the usage is @selfie or @selfie()
+    used_parenthesis: bool = not (
+        len(ignore_parameters) == 1
+        and callable(ignore_parameters[0])
+    )
+
+    if used_parenthesis is False:
+        func = ignore_parameters[0]
+        ignore_parameters = tuple()
 
     def decorator(func: Callable) -> Callable:
-        parameters = ParamProbe(func, remove_self=True).names
 
         @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
-            # Combine positional and keyword arguments
-            all_args = {**dict(zip(parameters, args, strict=True)), **kwargs}
+            bound_args = ArgMutator.bind(func, *args, **kwargs)
 
-            # Assign instance variables
-            for name, value in all_args.items():
+            for name, value in bound_args.items():
                 if name not in ignore_parameters:
                     setattr(self, name, value)
 
@@ -47,7 +52,7 @@ def selfie(*ignore_parameters: str) -> Callable:
 
         return wrapper
 
-    return decorator
+    return decorator if used_parenthesis else decorator(func)
 
 
 def export(defn: Any) -> Any:
@@ -88,7 +93,7 @@ def export(defn: Any) -> Any:
     module.__all__.append(defn.__name__)
     return defn
 
-
+# noqa
 def apply_decorators(func, *decorators):
     """
     Apply any number of decorators to a function

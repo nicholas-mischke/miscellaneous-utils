@@ -1,6 +1,6 @@
 import pytest
 
-from utils.misc import json_dump, json_load
+from miscellaneous_utilities.misc import json_dump, json_load
 
 
 def test_json_functions(tmp_path):

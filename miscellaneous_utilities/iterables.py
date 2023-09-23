@@ -1,4 +1,5 @@
 from operator import itemgetter
+from itertools import chain
 from typing import Iterable, List, Tuple, Union, Any, Dict
 
 
@@ -23,9 +24,7 @@ def arg_to_iter(
     """
 
     # Combining the varargs and the default values into one tuple
-    iter_single_values = default_iter_single_values + tuple(
-        additional_iter_single_values
-    )
+    iter_single_values = default_iter_single_values + additional_iter_single_values
 
     if arg is None:
         return []
@@ -49,6 +48,37 @@ def chunk_iter(iterable, chunk_size):
     return tuple(
         iterable[pos : pos + chunk_size] for pos in range(0, len(iterable), chunk_size)
     )
+
+
+def flatten(sequence: Union[Iterable, Any]) -> List:
+    """Flatten a sequence into a single, flat list.
+
+    Returns a single, flat list which contains all elements retrieved
+    from the sequence and all recursively contained sub-sequences (iterables).
+
+    Examples:
+    >>> flatten([1, 2, [3, 4], (5, 6)])
+    [1, 2, 3, 4, 5, 6]
+    >>> flatten([[[1, 2, 3], (42, None)], [4, 5], [6], 7, (8, 9, 10)])
+    [1, 2, 3, 42, None, 4, 5, 6, 7, 8, 9, 10]
+    >>> flatten(["foo", "bar"])
+    ['foo', 'bar']
+    >>> flatten(["foo", ["baz", 42], "bar"])
+    ['foo', 'baz', 42, 'bar']
+    """
+    result = []
+
+    # Recursive helper function to flatten a sequence
+    def _flatten(seq: Union[Iterable, Any]):
+        nonlocal result
+        for el in seq:
+            if hasattr(el, "__iter__") and not isinstance(el, (str, bytes)):
+                _flatten(el)
+            else:
+                result.append(el)
+
+    _flatten(sequence)
+    return result
 
 
 def all_indicies(iterable: Union[str, Iterable], obj: Any) -> Tuple[int]:
@@ -82,6 +112,14 @@ def all_indicies(iterable: Union[str, Iterable], obj: Any) -> Tuple[int]:
         raise ValueError()
     return tuple(indices)
 
+    # indicies = []
+    # for i, item in enumerate(iterable):
+    #     if item == obj:
+    #         indices.append(i)
+    # if not indices:
+    #     raise ValueError()
+    # return tuple(indices)
+
 
 def sort_list_by_key(lst: List[Dict], key: str, reverse: bool = False) -> List[Dict]:
     """Sort a list of mappings based on the values of a specific key.
@@ -97,3 +135,19 @@ def sort_list_by_key(lst: List[Dict], key: str, reverse: bool = False) -> List[D
         List[Dict]: The sorted list.
     """
     return sorted(lst, key=itemgetter(key), reverse=reverse)
+
+
+def sort_list_by_attr(lst: List[Any], attr: str, reverse: bool = False) -> List[Any]:
+    """Sort a list of objects based on the values of a specific attribute.
+
+    Args:
+    ----
+        lst (List[Any]): The list of objects to be sorted.
+        attr (str): The attribute based on which the list will be sorted.
+        reverse (bool, optional): If True, sort the list in descending order. Defaults to False.
+
+    Returns:
+    -------
+        List[Any]: The sorted list.
+    """
+    return sorted(lst, key=lambda x: getattr(x, attr), reverse=reverse)

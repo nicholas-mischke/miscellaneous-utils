@@ -6,7 +6,6 @@ from typing import Any, Union
 from functools import partial
 
 
-# trunk-ignore(ruff/D417)
 def json_dump(data: Any, path: Union[str, Path]) -> None:
     """Dump data to a JSON file.
 
@@ -23,7 +22,6 @@ def json_dump(data: Any, path: Union[str, Path]) -> None:
         json.dump(data, f)
 
 
-# trunk-ignore(ruff/D417)
 def json_load(path: Union[str, Path]) -> Any:
     """Load data from a JSON file.
 
@@ -38,4 +36,24 @@ def json_load(path: Union[str, Path]) -> Any:
     with Path(path).open("r") as f:
         return json.load(f)
 
+# noqa
+def reprint(*args, **kwargs):
+    """
+    Reprint by deleting the last line and printing the given arguments.
 
+    The function uses ANSI escape codes:
+    - "\033[1A": Moves the cursor up one line.
+    - "\x1b[2K": Clears the current line.
+
+    Args:
+        *args: Variable length argument list to be printed.
+        **kwargs: Arbitrary keyword arguments passed to the print function.
+    """
+    # Move the cursor up one line
+    print("\033[1A", end="")
+
+    # Clear the current line
+    print("\x1b[2K", end="")
+
+    # Print the given arguments
+    print(*args, **kwargs)
