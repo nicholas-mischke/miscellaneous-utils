@@ -16,6 +16,7 @@ from _signatures import (
     many_params,
     SomeClass,
     some_instance,
+    with_a_default
 )
 
 
@@ -555,6 +556,12 @@ class TestArgMutator:
         assert ArgMutator.missing_args(func, kw_only_param=3) == (
             "pos_only_param", "pos_or_kw_param"
         )
+
+        # Test with defaults
+        assert ArgMutator.missing_args(with_a_default) == ("a", "b")
+        assert ArgMutator.missing_args(with_a_default, 1) == ("b",)
+        assert ArgMutator.missing_args(with_a_default, 1, 2) == ()
+
 
 def test_mapping_to_kwargs():
     mapping_one = {"a": 1, "b": 2, "c": 3, "d": 4}

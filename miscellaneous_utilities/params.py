@@ -814,6 +814,15 @@ class ArgMutator:
             except (KeyError, ValueError):
                 ...
 
+        DEBUG = True
+
+        # Remove parameters with default values
+        for param in missing_params:
+            if param_probe[param].default is not EMPTY:
+                missing_params.remove(param)
+
+        DEBUG = True
+
         return tuple(missing_params)
 
 

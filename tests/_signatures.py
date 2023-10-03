@@ -38,6 +38,9 @@ class SomeClass:
 
 some_instance = SomeClass(1, 2, 3)
 
+def with_a_default(a, b, c=3):
+    ...
+
 
 if __name__ == "__main__":
     import inspect
