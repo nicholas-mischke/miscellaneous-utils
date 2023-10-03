@@ -793,6 +793,37 @@ class ArgMutator:
         bound_args.apply_defaults()
         return dict(bound_args.arguments)
 
+    @staticmethod
+    def missing_args(func, *args, **kwargs) -> Tuple[str, ...]:
+        try:
+            param_probe = ParamProbe(func, remove_self=True)
+        except ValueError:
+            param_probe = ParamProbe(func)
+
+        missing_params = list(param_probe.names)
+        for _ in range(len(args)):
+            missing_params.pop(0)
+
+        for key in kwargs:
+            missing_params.remove(key)
+
+        # VAR_POSITIONAL and VAR_KEYWORD are not required
+        for key in ("VAR_POSITIONAL", "VAR_KEYWORD"):
+            try:
+                missing_params.remove(param_probe[key].name)
+            except (KeyError, ValueError):
+                ...
+
+        return tuple(missing_params)
+
+
+def bind_args(func, *args, **kwargs) -> Dict[str, Any]:
+    return ArgMutator.bind(func, *args, **kwargs)
+
+
+def missing_args(func, *args, **kwargs) -> Tuple[str, ...]:
+    return ArgMutator.missing_arguments(func, *args, **kwargs)
+
 
 def mapping_to_kwargs(func: Union[Type, Callable], mapping: Mapping):
     """

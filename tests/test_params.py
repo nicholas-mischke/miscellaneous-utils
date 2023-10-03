@@ -537,6 +537,24 @@ class TestArgMutator:
     def test_bind(self):
         assert ArgMutator.bind(some_func, 1, 2, 3) == {"a": 1, "b": 2, "c": 3}
 
+    def test_missing_args(self):
+        assert ArgMutator.missing_args(some_func, 1, 2, 3) == ()
+        assert ArgMutator.missing_args(some_func, 1, 2) == ("c",)
+        assert ArgMutator.missing_args(some_func) == ("a", "b", "c")
+
+        # args and kwargs aren't mandatory, so cannot be missing
+        func = many_params
+        assert ArgMutator.missing_args(func) == (
+            "pos_only_param", "pos_or_kw_param", "kw_only_param"
+        )
+        assert ArgMutator.missing_args(func, 1) == (
+            "pos_or_kw_param", "kw_only_param"
+        )
+        assert ArgMutator.missing_args(func, 1, 2) == ("kw_only_param",)
+        assert ArgMutator.missing_args(func, 1, 2, 3) == ("kw_only_param",)
+        assert ArgMutator.missing_args(func, kw_only_param=3) == (
+            "pos_only_param", "pos_or_kw_param"
+        )
 
 def test_mapping_to_kwargs():
     mapping_one = {"a": 1, "b": 2, "c": 3, "d": 4}
@@ -555,6 +573,6 @@ if __name__ == "__main__":
 
     path = Path(__file__).absolute()
 
-    pytest.main([str(path)])
+    # pytest.main([str(path)])
     # pytest.main([f"{str(path)}::TestParamProbe", "-s"])
-    # pytest.main([f"{str(path)}::TestArgMutator", "-vv"])
+    pytest.main([f"{str(path)}::TestArgMutator::test_missing_args", "-vv"])
