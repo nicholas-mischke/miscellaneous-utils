@@ -822,7 +822,7 @@ def bind_args(func, *args, **kwargs) -> Dict[str, Any]:
 
 
 def missing_args(func, *args, **kwargs) -> Tuple[str, ...]:
-    return ArgMutator.missing_arguments(func, *args, **kwargs)
+    return ArgMutator.missing_args(func, *args, **kwargs)
 
 
 def mapping_to_kwargs(func: Union[Type, Callable], mapping: Mapping):

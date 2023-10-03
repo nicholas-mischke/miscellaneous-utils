@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "miscellaneous-utils"
-version = "0.3.3"
+version = "0.3.4"
 description = "Random collection of utilities that I've found useful."
 authors = ["Nicholas Mischke <nmischkework@proton.me>"]
 readme = "README.md"
