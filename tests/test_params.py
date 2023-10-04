@@ -3,6 +3,7 @@ from miscellaneous_utilities.params import (
     Param,
     ParamProbe,
     ArgMutator,
+    build_signature,
     mapping_to_kwargs,
 )
 
@@ -11,13 +12,7 @@ import sys
 
 # Import from the tests/_signatures.py file
 sys.path.append(str(Path(__file__).parent))
-from _signatures import (
-    some_func,
-    many_params,
-    SomeClass,
-    some_instance,
-    with_a_default
-)
+from _signatures import some_func, many_params, SomeClass, some_instance, with_a_default
 
 
 class TestParamProbe:
@@ -351,7 +346,16 @@ class TestArgMutator:
                 assert mutator_value == value
 
     def test_values(self, mutator):
-        assert mutator.values == (1, 2, "a", "b", "c", "kw_only_arg", "kw1_arg", "kw2_arg")
+        assert mutator.values == (
+            1,
+            2,
+            "a",
+            "b",
+            "c",
+            "kw_only_arg",
+            "kw1_arg",
+            "kw2_arg",
+        )
 
     def test_asdict(self, mutator):
         assert mutator.asdict() == {
@@ -411,14 +415,17 @@ class TestArgMutator:
         }
 
     def test_contains(self, mutator):
-        assert 'pos_only_param' in mutator
-        assert 'not_a_param' not in mutator
+        assert "pos_only_param" in mutator
+        assert "not_a_param" not in mutator
 
     def test_len(self, mutator):
         assert len(mutator) == 5
 
     def test_str(self, mutator):
-        assert str(mutator) == "<ArgMutator: many_params(pos_only_param, /, pos_or_kw_param, *var_pos_param, kw_only_param, **var_kw_param)>"
+        assert (
+            str(mutator)
+            == "<ArgMutator: many_params(pos_only_param, /, pos_or_kw_param, *var_pos_param, kw_only_param, **var_kw_param)>"
+        )
 
     @pytest.mark.parametrize(
         "key, expected_names",
@@ -457,38 +464,54 @@ class TestArgMutator:
     @pytest.mark.parametrize(
         "name, value, expected_dict",
         [
-            ("pos_only_param", 100, {
-                'pos_only_param': 100,
-                'pos_or_kw_param': 2,
-                'var_pos_param': ('a', 'b', 'c'),
-                'kw_only_param': 'kw_only_arg',
-                'var_kw_param': {'kw1': 'kw1_arg', 'kw2': 'kw2_arg'}
-            }),
-            ("var_pos_param", ("x", "y", "z"), {
-                'pos_only_param': 1,
-                'pos_or_kw_param': 2,
-                'var_pos_param': ('x', 'y', 'z'),
-                'kw_only_param': 'kw_only_arg',
-                'var_kw_param': {'kw1': 'kw1_arg', 'kw2': 'kw2_arg'}
-            }),
-            ("var_kw_param", {"kw1": "new_kw1_arg", "kw2": "new_kw2_arg"}, {
-                'pos_only_param': 1,
-                'pos_or_kw_param': 2,
-                'var_pos_param': ('a', 'b', 'c'),
-                'kw_only_param': 'kw_only_arg',
-                'var_kw_param': {"kw1": "new_kw1_arg", "kw2": "new_kw2_arg"}
-            }),
-            ("new_var_kw_param", "new_var_kw_param_value", {
-                'pos_only_param': 1,
-                'pos_or_kw_param': 2,
-                'var_pos_param': ('a', 'b', 'c'),
-                'kw_only_param': 'kw_only_arg',
-                'var_kw_param': {
-                    'kw1': 'kw1_arg',
-                    'kw2': 'kw2_arg',
-                    "new_var_kw_param": "new_var_kw_param_value"
-                }
-            }),
+            (
+                "pos_only_param",
+                100,
+                {
+                    "pos_only_param": 100,
+                    "pos_or_kw_param": 2,
+                    "var_pos_param": ("a", "b", "c"),
+                    "kw_only_param": "kw_only_arg",
+                    "var_kw_param": {"kw1": "kw1_arg", "kw2": "kw2_arg"},
+                },
+            ),
+            (
+                "var_pos_param",
+                ("x", "y", "z"),
+                {
+                    "pos_only_param": 1,
+                    "pos_or_kw_param": 2,
+                    "var_pos_param": ("x", "y", "z"),
+                    "kw_only_param": "kw_only_arg",
+                    "var_kw_param": {"kw1": "kw1_arg", "kw2": "kw2_arg"},
+                },
+            ),
+            (
+                "var_kw_param",
+                {"kw1": "new_kw1_arg", "kw2": "new_kw2_arg"},
+                {
+                    "pos_only_param": 1,
+                    "pos_or_kw_param": 2,
+                    "var_pos_param": ("a", "b", "c"),
+                    "kw_only_param": "kw_only_arg",
+                    "var_kw_param": {"kw1": "new_kw1_arg", "kw2": "new_kw2_arg"},
+                },
+            ),
+            (
+                "new_var_kw_param",
+                "new_var_kw_param_value",
+                {
+                    "pos_only_param": 1,
+                    "pos_or_kw_param": 2,
+                    "var_pos_param": ("a", "b", "c"),
+                    "kw_only_param": "kw_only_arg",
+                    "var_kw_param": {
+                        "kw1": "kw1_arg",
+                        "kw2": "kw2_arg",
+                        "new_var_kw_param": "new_var_kw_param_value",
+                    },
+                },
+            ),
         ],
     )
     def test_set_argument_value(self, mutator, name, value, expected_dict):
@@ -496,14 +519,30 @@ class TestArgMutator:
         assert mutator._bound_arg_dict == expected_dict
 
     @pytest.mark.parametrize(
-        "key, expected", [
+        "key, expected",
+        [
             (100, KeyError),
             (0, {"pos_only_param": 1}),
             (slice(0, 4, 2), {"pos_only_param": 1, "var_pos_param": ("a", "b", "c")}),
-            ("ALL_POSITIONAL", {"pos_only_param": 1, "pos_or_kw_param": 2, "var_pos_param": ("a", "b", "c")}),
-            ("ALL_KEYWORD", {"kw_only_param": "kw_only_arg", "var_kw_param": {"kw1": "kw1_arg", "kw2": "kw2_arg"}, "kw1": "kw1_arg", "kw2": "kw2_arg"}),
+            (
+                "ALL_POSITIONAL",
+                {
+                    "pos_only_param": 1,
+                    "pos_or_kw_param": 2,
+                    "var_pos_param": ("a", "b", "c"),
+                },
+            ),
+            (
+                "ALL_KEYWORD",
+                {
+                    "kw_only_param": "kw_only_arg",
+                    "var_kw_param": {"kw1": "kw1_arg", "kw2": "kw2_arg"},
+                    "kw1": "kw1_arg",
+                    "kw2": "kw2_arg",
+                },
+            ),
             ("NESTED_VAR_KEYWORDS", {"kw1": "kw1_arg", "kw2": "kw2_arg"}),
-        ]
+        ],
     )
     def test__getitem__(self, mutator, key, expected):
         if expected == KeyError:
@@ -513,20 +552,34 @@ class TestArgMutator:
             assert mutator[key] == expected
 
     @pytest.mark.parametrize(
-        "key, args_only, default, expected", [
+        "key, args_only, default, expected",
+        [
             (100, False, "Key Not Present", "Key Not Present"),
-            ("ALL_KEYWORD", True, None, ("kw_only_arg", {"kw1": "kw1_arg", "kw2": "kw2_arg"}, "kw1_arg", "kw2_arg")),
-            ("VAR_POSITIONAL", False, None, {'var_pos_param': ('a', 'b', 'c')}),
-        ]
+            (
+                "ALL_KEYWORD",
+                True,
+                None,
+                (
+                    "kw_only_arg",
+                    {"kw1": "kw1_arg", "kw2": "kw2_arg"},
+                    "kw1_arg",
+                    "kw2_arg",
+                ),
+            ),
+            ("VAR_POSITIONAL", False, None, {"var_pos_param": ("a", "b", "c")}),
+        ],
     )
     def test_get(self, mutator, key, args_only, default, expected):
         assert mutator.get(key, args_only, default) == expected
 
-    @pytest.mark.parametrize("key, value, error, expected", [
-        (100, "new_value", KeyError, None),
-        ("ALL_POSITIONAL", "new_value", ValueError, None),
-        ("a", 100, None, {'a': 100, 'b': 2, 'c': 3}),
-    ])
+    @pytest.mark.parametrize(
+        "key, value, error, expected",
+        [
+            (100, "new_value", KeyError, None),
+            ("ALL_POSITIONAL", "new_value", ValueError, None),
+            ("a", 100, None, {"a": 100, "b": 2, "c": 3}),
+        ],
+    )
     def test__setitem__(self, simple_mutator, key, value, error, expected):
         if error:
             with pytest.raises(error):
@@ -546,21 +599,88 @@ class TestArgMutator:
         # args and kwargs aren't mandatory, so cannot be missing
         func = many_params
         assert ArgMutator.missing_args(func) == (
-            "pos_only_param", "pos_or_kw_param", "kw_only_param"
+            "pos_only_param",
+            "pos_or_kw_param",
+            "kw_only_param",
         )
-        assert ArgMutator.missing_args(func, 1) == (
-            "pos_or_kw_param", "kw_only_param"
-        )
+        assert ArgMutator.missing_args(func, 1) == ("pos_or_kw_param", "kw_only_param")
         assert ArgMutator.missing_args(func, 1, 2) == ("kw_only_param",)
         assert ArgMutator.missing_args(func, 1, 2, 3) == ("kw_only_param",)
         assert ArgMutator.missing_args(func, kw_only_param=3) == (
-            "pos_only_param", "pos_or_kw_param"
+            "pos_only_param",
+            "pos_or_kw_param",
         )
 
         # Test with defaults
         assert ArgMutator.missing_args(with_a_default) == ("a", "b")
         assert ArgMutator.missing_args(with_a_default, 1) == ("b",)
         assert ArgMutator.missing_args(with_a_default, 1, 2) == ()
+
+
+@pytest.mark.parametrize(
+    "method_kwargs,bind_args,bind_kwargs,test_string,bind_result",
+    [
+        (
+            {
+                "pos_only": ("a",),
+                "pos_or_kw": ("b",),
+                "var_pos": "args",
+                "kw_only": ("c", "d"),
+                "var_kw": "kwargs",
+            },
+            (1, 2, 3, 4, 5),
+            {"c": 6, "d": 7, "e": 8},
+            "(a, /, b, *args, c, d, **kwargs)",
+            {"a": 1, "b": 2, "args": (3, 4, 5), "c": 6, "d": 7, "kwargs": {"e": 8}},
+        ),
+        (
+            {"pos_or_kw": ("a", "b", "c")},
+            (1, 2, 3),
+            {},
+            "(a, b, c)",
+            {"a": 1, "b": 2, "c": 3},
+        ),
+        (
+            {"pos_only": ("x",), "kw_only": ("y",), "var_kw": "kwargs"},
+            (1,),
+            {"y": 2, "z": 3},
+            "(x, /, *, y, **kwargs)",
+            {"x": 1, "y": 2, "kwargs": {"z": 3}},
+        ),
+        (
+            {"pos_only": ("m", "n"), "var_pos": "args"},
+            (1, 2, 3, 4),
+            {},
+            "(m, n, /, *args)",
+            {"m": 1, "n": 2, "args": (3, 4)},
+        ),
+        (
+            {
+                "pos_only": (),
+                "pos_or_kw": (),
+                "var_pos": None,
+                "kw_only": (),
+                "var_kw": None,
+            },
+            (),
+            {},
+            "()",
+            {},
+        ),
+    ],
+)
+def test_build_signature(
+    method_kwargs, bind_args, bind_kwargs, test_string, bind_result
+):
+    # Test string representation of the signature
+    signature = build_signature(**method_kwargs)
+    assert str(signature) == test_string
+
+    # Test binding arguments to the signature
+    bound_args = build_signature(
+        **method_kwargs, bind_args=bind_args, bind_kwargs=bind_kwargs
+    )
+    assert bound_args == bind_result
 
 
 def test_mapping_to_kwargs():
@@ -582,4 +702,4 @@ if __name__ == "__main__":
 
     # pytest.main([str(path)])
     # pytest.main([f"{str(path)}::TestParamProbe", "-s"])
-    pytest.main([f"{str(path)}::TestArgMutator::test_missing_args", "-vv"])
+    pytest.main([f"{str(path)}::test_build_signature", "-vv"])

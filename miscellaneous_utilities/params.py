@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Tuple, Type, Union, Mapping, Iterable
+from typing import Any, Callable, Dict, Tuple, Type, Union, Mapping, Iterable, Optional
 import inspect
 
 
@@ -814,14 +814,10 @@ class ArgMutator:
             except (KeyError, ValueError):
                 ...
 
-        DEBUG = True
-
         # Remove parameters with default values
         for param in missing_params:
             if param_probe[param].default is not EMPTY:
                 missing_params.remove(param)
-
-        DEBUG = True
 
         return tuple(missing_params)
 
@@ -832,6 +828,47 @@ def bind_args(func, *args, **kwargs) -> Dict[str, Any]:
 
 def missing_args(func, *args, **kwargs) -> Tuple[str, ...]:
     return ArgMutator.missing_args(func, *args, **kwargs)
+
+def build_signature(
+    pos_only: Tuple[str, ...] = tuple(),
+    pos_or_kw: Tuple[str, ...] = tuple(),
+    var_pos: str = None,
+    kw_only: Tuple[str, ...] = tuple(),
+    var_kw: str = None,
+    bind_args: Optional[Tuple[Any, ...]] = None,
+    bind_kwargs: Optional[Dict[str, Any]] = None,
+) -> Union[inspect.Signature, Dict[str, Any]]:
+    """
+    Build a signature from the provided parameters.
+
+    You cannot call a signature, but can bind it to arguments.
+
+    Example:
+    --------
+    >>> sig = build_signature(pos_or_kw('a', 'b', 'c'))
+    >>> sig.bind(1, 2, 3).arguments
+    {'a': 1, 'b': 2, 'c': 3}
+    """
+    parameters = []
+    for name in pos_only:
+        parameters.append(inspect.Parameter(name, inspect.Parameter.POSITIONAL_ONLY))
+    for name in pos_or_kw:
+        parameters.append(inspect.Parameter(name, inspect.Parameter.POSITIONAL_OR_KEYWORD))
+    if var_pos is not None:
+        parameters.append(inspect.Parameter(var_pos, inspect.Parameter.VAR_POSITIONAL))
+    for name in kw_only:
+        parameters.append(inspect.Parameter(name, inspect.Parameter.KEYWORD_ONLY))
+    if var_kw is not None:
+        parameters.append(inspect.Parameter(var_kw, inspect.Parameter.VAR_KEYWORD))
+    sig = inspect.Signature(parameters)
+
+    if bind_args is None and bind_kwargs is None:
+        return sig
+    else:
+        args = bind_args or tuple()
+        kwargs = bind_kwargs or dict()
+
+        return sig.bind(*args, **kwargs).arguments
 
 
 def mapping_to_kwargs(func: Union[Type, Callable], mapping: Mapping):
@@ -855,25 +892,8 @@ def mapping_to_kwargs(func: Union[Type, Callable], mapping: Mapping):
 
 if __name__ == "__main__":
 
-    def some_func(a, b, c):
+    def some_func(a, b, c=1):
         ...
 
-    class SomeClass:
-        def __init__(self, a, b, c):
-            ...
-
-        def some_method(self, x, y, z):
-            ...
-
-    for f in [
-        some_func,
-        SomeClass.__init__,
-        SomeClass.some_method,
-        SomeClass(1, 2, 3).some_method,
-    ]:
-        print(f"{f.__name__=}")
-        print(f"{ParamProbe._is_bound_method(f)=}")
-        print(f"{ParamProbe._is_unbound_method(f)=}")
-        print(f"{ParamProbe._is_method(f)=}")
-        print(f"{str(inspect.signature(f))=}")
-        print()
+    missing = missing_args(some_func)
+    print(missing)
