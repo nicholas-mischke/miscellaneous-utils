@@ -4,8 +4,7 @@ from pathlib import Path
 import sys
 import importlib.util
 
-from miscellaneous_utilities.decorators import selfie, export
-
+from misc_utils import selfie
 
 def test_selfie():
     class TestClass:
@@ -48,3 +47,25 @@ if __name__ == "__main__":
 
     # pytest.main([str(path)])
     pytest.main([f"{str(path)}::test_selfie"])
+
+    test_file = Path(__file__).absolute()
+
+    test_class_or_function = None
+    test_method = None
+
+    # test_class_or_function = ''
+    # test_method = ''
+
+    test_path = test_file
+    if test_class_or_function is not None:
+        test_path = f"{test_path}::{test_class_or_function}"
+    if test_method is not None:
+        test_path = f"{test_path}::{test_method}"
+
+    args = [
+        test_path,
+        "-s",
+        "--verbose",
+    ]
+
+    pytest.main(args)

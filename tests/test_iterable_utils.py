@@ -1,5 +1,5 @@
 import pytest
-from miscellaneous_utilities.iterables import (
+from misc_utils import (
     arg_to_iter,
     chunk_iter,
     all_indicies,
@@ -28,6 +28,18 @@ def test_chunk_iter():
     some_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     assert chunk_iter(some_list, 2) == ([1, 2], [3, 4], [5, 6], [7, 8], [9, 10])
     assert chunk_iter(some_list, 3) == ([1, 2, 3], [4, 5, 6], [7, 8, 9], [10])
+
+@pytest.mark.parametrize(
+    "nested_list, expected",
+    [
+        ([], []),  # Empty list
+        ([1, 2, 3], [1, 2, 3]),  # Already flat
+        ([[1, 2], [3, 4]], [1, 2, 3, 4]),  # Two-level nesting
+        ([1, [2, [3, 4]]], [1, 2, 3, 4]),  # Multi-level nesting
+    ],
+)
+def test_flatten(nested_list, expected):
+    assert list(flatten(nested_list)) == expected
 
 
 @pytest.mark.parametrize(
@@ -101,19 +113,6 @@ def test_sort_list_by_key(lst, key, reverse, expected):
     assert sort_list_by_key(lst, key, reverse) == expected
 
 
-@pytest.mark.parametrize(
-    "nested_list, expected",
-    [
-        ([], []),  # Empty list
-        ([1, 2, 3], [1, 2, 3]),  # Already flat
-        ([[1, 2], [3, 4]], [1, 2, 3, 4]),  # Two-level nesting
-        ([1, [2, [3, 4]]], [1, 2, 3, 4]),  # Multi-level nesting
-    ],
-)
-def test_flatten(nested_list, expected):
-    assert list(flatten(nested_list)) == expected
-
-
 def test_sort_list_by_attr():
     class Person:
         def __init__(self, name: str, age: int):
@@ -124,3 +123,30 @@ def test_sort_list_by_attr():
     sorted_people = sort_list_by_attr(people, "age")
 
     assert [p.age for p in sorted_people] == [25, 30, 35]
+
+
+if __name__ == "__main__":
+    from pathlib import Path
+    from pprint import pprint
+    import pytest
+
+    test_file = Path(__file__).absolute()
+    test_class_or_function = None
+    test_method = None
+
+    # test_class_or_function = ''
+    # test_method = ''
+
+    test_path = test_file
+    if test_class_or_function is not None:
+        test_path = f"test_path::{test_class_or_function}"
+    if test_method is not None:
+        test_path = f"test_path::{test_method}"
+
+    args = [
+        test_path,
+        "-s",
+        "--verbose",
+    ]
+
+    pytest.main(args)

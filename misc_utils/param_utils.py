@@ -1,6 +1,11 @@
 from typing import Any, Callable, Dict, Tuple, Type, Union, Mapping, Iterable, Optional
 import inspect
 
+try:
+    from .decorator_utils import export
+except ImportError:
+    from decorator_utils import export
+
 
 EMPTY = inspect.Parameter.empty
 POSITIONAL_ONLY = inspect.Parameter.POSITIONAL_ONLY
@@ -17,6 +22,7 @@ kwargs_sig = inspect.Signature(
 )
 
 
+@export
 class Param:
     def __init__(self, inspect_param: inspect.Parameter):
         self.name: str = inspect_param.name
@@ -88,6 +94,7 @@ class Param:
         )
 
 
+@export
 class ParamProbe:
     """
     A wrapper around the inspect.signature(func).parameters object.
@@ -400,6 +407,7 @@ class ParamProbe:
         return ParamProbe._is_bound_method(func) or ParamProbe._is_unbound_method(func)
 
 
+@export
 class ArgMutator:
     """
     Subscriptable interface to the bound arguments of a function.
@@ -637,8 +645,6 @@ class ArgMutator:
                     f"Variable keyword arguments must be a Mapping, not {type(value)}."
                 )
 
-        DEBUG = True
-
         # Named parameters
         if name in self.parameters:
             self._bound_arg_dict[name] = value
@@ -801,6 +807,7 @@ class ArgMutator:
             param_probe = ParamProbe(func)
 
         missing_params = list(param_probe.names)
+
         for _ in range(len(args)):
             missing_params.pop(0)
 
@@ -822,13 +829,17 @@ class ArgMutator:
         return tuple(missing_params)
 
 
+@export
 def bind_args(func, *args, **kwargs) -> Dict[str, Any]:
     return ArgMutator.bind(func, *args, **kwargs)
 
 
+@export
 def missing_args(func, *args, **kwargs) -> Tuple[str, ...]:
     return ArgMutator.missing_args(func, *args, **kwargs)
 
+
+@export
 def build_signature(
     pos_only: Tuple[str, ...] = tuple(),
     pos_or_kw: Tuple[str, ...] = tuple(),
@@ -853,7 +864,9 @@ def build_signature(
     for name in pos_only:
         parameters.append(inspect.Parameter(name, inspect.Parameter.POSITIONAL_ONLY))
     for name in pos_or_kw:
-        parameters.append(inspect.Parameter(name, inspect.Parameter.POSITIONAL_OR_KEYWORD))
+        parameters.append(
+            inspect.Parameter(name, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+        )
     if var_pos is not None:
         parameters.append(inspect.Parameter(var_pos, inspect.Parameter.VAR_POSITIONAL))
     for name in kw_only:
@@ -864,6 +877,10 @@ def build_signature(
 
     if bind_args is None and bind_kwargs is None:
         return sig
+    elif bind_args is not None and bind_kwargs is None:
+        return sig.bind(*bind_args).arguments
+    elif bind_args is None and bind_kwargs is not None:
+        return sig.bind(**bind_kwargs).arguments
     else:
         args = bind_args or tuple()
         kwargs = bind_kwargs or dict()
@@ -871,6 +888,7 @@ def build_signature(
         return sig.bind(*args, **kwargs).arguments
 
 
+@export
 def mapping_to_kwargs(func: Union[Type, Callable], mapping: Mapping):
     """
     Convert a mapping to keyword arguments suitable for a given function.
@@ -888,12 +906,3 @@ def mapping_to_kwargs(func: Union[Type, Callable], mapping: Mapping):
         params = ParamProbe(func).names
 
     return {param: mapping[param] for param in params if param in mapping}
-
-
-if __name__ == "__main__":
-
-    def some_func(a, b, c=1):
-        ...
-
-    missing = missing_args(some_func)
-    print(missing)

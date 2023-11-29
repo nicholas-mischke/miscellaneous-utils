@@ -1,8 +1,12 @@
 import re
-from typing import Optional, Dict
+
+try:
+    from .decorator_utils import export
+except ImportError:
+    from decorator_utils import export
 
 
-# trunk-ignore(ruff/D417)
+@export
 def normalize_space(string: str) -> str:
     """
     Assumes utf-8 encoding.
@@ -29,6 +33,7 @@ def normalize_space(string: str) -> str:
     return string.strip()
 
 
+@export
 def normalize_newlines(
     string: str, leading_newline: bool = False, trailing_newline: bool = True
 ) -> str:
@@ -54,6 +59,7 @@ def normalize_newlines(
     return string
 
 
+@export
 class CaseConverter:
     """
     Class for converting strings between different cases.
@@ -290,23 +296,7 @@ class CaseConverter:
         """
         return "".join(word.title() for word in self.word_list)
 
-    @property
-    def PascalCase(self) -> str:
-        """
-        Converts the string to PascalCase.
-
-        Examples:
-        --------
-        >>> CaseConverter("hello_world").pascal_case # snake_case
-        'HelloWorld'
-        >>> CaseConverter("HelloWorld").pascal_case # PascalCase
-        'HelloWorld'
-        >>> CaseConverter("helloWorld").pascal_case # camelCase
-        'HelloWorld'
-        >>> CaseConverter("hello-world").pascal_case # kebab-case
-        'HelloWorld'
-        """
-        return self.pascal_case
+    PascalCase = pascal_case
 
     @property
     def camel_case(self) -> str:
@@ -326,23 +316,7 @@ class CaseConverter:
         """
         return self.word_list[0] + "".join(word.title() for word in self.word_list[1:])
 
-    @property
-    def camelCase(self) -> str:
-        """
-        Converts the input string to camelCase.
-
-        Examples:
-        --------
-        >>> CaseConverter("hello_world").camel_case # snake_case
-        'helloWorld'
-        >>> CaseConverter("HelloWorld").camel_case # PascalCase
-        'helloWorld'
-        >>> CaseConverter("helloWorld").camel_case # camelCase
-        'helloWorld'
-        >>> CaseConverter("hello-world").camel_case # kebab-case
-        'helloWorld'
-        """
-        return self.camel_case
+    camelCase = camel_case
 
     @property
     def kebab_case(self) -> str:
@@ -361,11 +335,3 @@ class CaseConverter:
         'hello-world'
         """
         return "-".join(self.word_list)
-
-
-if __name__ == "__main__":
-    print(CaseConverter("").snake_case)
-
-    # doctest.testmod()
-
-    # print("Hello World".isalnum())

@@ -1,8 +1,13 @@
 from operator import itemgetter
-from itertools import chain
 from typing import Iterable, List, Tuple, Union, Any, Dict
 
+try:
+    from .decorator_utils import export
+except ImportError:
+    from decorator_utils import export
 
+
+@export
 def arg_to_iter(
     arg: Union[None, Iterable, Any],
     *additional_iter_single_values: Iterable,
@@ -17,6 +22,20 @@ def arg_to_iter(
         *additional_iter_single_values (Iterable): Additional types to be considered as single values.
         default_iter_single_values (Iterable, optional): Default types to be considered as single values.
             Defaults to (bytes, dict, str).
+
+    Examples:
+    --------
+    >>> arg_to_iter(None)
+    []
+
+    >>> arg_to_iter("hello")
+    ['hello']
+
+    >>> arg_to_iter([1, 2, 3])
+    [1, 2, 3]
+
+    >>> arg_to_iter(42)
+    [42]
 
     Returns:
     -------
@@ -34,15 +53,23 @@ def arg_to_iter(
         return [arg]
 
 
+@export
 def chunk_iter(iterable, chunk_size):
     """
     Split an iterable into successive chunks using index subscriptions.
 
     Args:
+    ----
         iterable (iterable): An iterable to split into chunks.
         chunk_size (int): The size of each chunk.
 
+    Examples:
+    --------
+    >>> chunk_iter([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 2)
+    ([1, 2], [3, 4], [5, 6], [7, 8], [9, 10])
+
     Returns:
+    -------
         tuple: A tuple containing chunks of the iterable.
     """
     return tuple(
@@ -50,6 +77,7 @@ def chunk_iter(iterable, chunk_size):
     )
 
 
+@export
 def flatten(sequence: Union[Iterable, Any]) -> List:
     """Flatten a sequence into a single, flat list.
 
@@ -57,6 +85,7 @@ def flatten(sequence: Union[Iterable, Any]) -> List:
     from the sequence and all recursively contained sub-sequences (iterables).
 
     Examples:
+    --------
     >>> flatten([1, 2, [3, 4], (5, 6)])
     [1, 2, 3, 4, 5, 6]
     >>> flatten([[[1, 2, 3], (42, None)], [4, 5], [6], 7, (8, 9, 10)])
@@ -81,6 +110,7 @@ def flatten(sequence: Union[Iterable, Any]) -> List:
     return result
 
 
+@export
 def all_indicies(iterable: Union[str, Iterable], obj: Any) -> Tuple[int]:
     """Find all indices of an object in an iterable.
 
@@ -88,6 +118,14 @@ def all_indicies(iterable: Union[str, Iterable], obj: Any) -> Tuple[int]:
     ----
         iterable (Union[str, Iterable]): The iterable to search in.
         obj (Any): The object to search for.
+
+    Examples:
+    --------
+    >>> all_indicies("hello world hello world", "world")
+    (6, 18)
+
+    >>> all_indicies([1, 2, 3, 4, 1, 5, 1], 1)
+    (0, 4, 6)
 
     Returns:
     -------
@@ -108,6 +146,7 @@ def all_indicies(iterable: Union[str, Iterable], obj: Any) -> Tuple[int]:
             split = indices[-1] + 1
         except ValueError:  # obj not in this chunk of the iterable
             break
+
     if not indices:
         raise ValueError()
     return tuple(indices)
@@ -121,6 +160,7 @@ def all_indicies(iterable: Union[str, Iterable], obj: Any) -> Tuple[int]:
     # return tuple(indices)
 
 
+@export
 def sort_list_by_key(lst: List[Dict], key: str, reverse: bool = False) -> List[Dict]:
     """Sort a list of mappings based on the values of a specific key.
 
@@ -137,6 +177,7 @@ def sort_list_by_key(lst: List[Dict], key: str, reverse: bool = False) -> List[D
     return sorted(lst, key=itemgetter(key), reverse=reverse)
 
 
+@export
 def sort_list_by_attr(lst: List[Any], attr: str, reverse: bool = False) -> List[Any]:
     """Sort a list of objects based on the values of a specific attribute.
 

@@ -1,8 +1,10 @@
 import pytest
-from miscellaneous_utilities.params import (
+from misc_utils import (
     Param,
     ParamProbe,
     ArgMutator,
+    bind_args,
+    missing_args,
     build_signature,
     mapping_to_kwargs,
 )
@@ -616,6 +618,8 @@ class TestArgMutator:
         assert ArgMutator.missing_args(with_a_default, 1) == ("b",)
         assert ArgMutator.missing_args(with_a_default, 1, 2) == ()
 
+# bind_args and missing_args are tested directly, as they are used in the
+# ArgMutator class
 
 @pytest.mark.parametrize(
     "method_kwargs,bind_args,bind_kwargs,test_string,bind_result",
@@ -697,9 +701,25 @@ def test_mapping_to_kwargs():
 if __name__ == "__main__":
     from pathlib import Path
     from pprint import pprint
+    import pytest
 
-    path = Path(__file__).absolute()
+    test_file = Path(__file__).absolute()
+    test_class_or_function = None
+    test_method = None
 
-    # pytest.main([str(path)])
-    # pytest.main([f"{str(path)}::TestParamProbe", "-s"])
-    pytest.main([f"{str(path)}::test_build_signature", "-vv"])
+    # test_class_or_function = ''
+    # test_method = ''
+
+    test_path = test_file
+    if test_class_or_function is not None:
+        test_path = f"test_path::{test_class_or_function}"
+    if test_method is not None:
+        test_path = f"test_path::{test_method}"
+
+    args = [
+        test_path,
+        "-s",
+        "--verbose",
+    ]
+
+    pytest.main(args)

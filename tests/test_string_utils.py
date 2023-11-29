@@ -1,5 +1,5 @@
 import pytest
-from miscellaneous_utilities.strings import (
+from misc_utils import (
     normalize_space,
     normalize_newlines,
     CaseConverter,
@@ -94,4 +94,27 @@ def test_case_converter_error():
 
 
 if __name__ == "__main__":
-    pytest.main(["-k", "test_case_converter"])
+    from pathlib import Path
+    from pprint import pprint
+    import pytest
+
+    test_file = Path(__file__).absolute()
+    test_class_or_function = None
+    test_method = None
+
+    # test_class_or_function = ''
+    # test_method = ''
+
+    test_path = test_file
+    if test_class_or_function is not None:
+        test_path = f"test_path::{test_class_or_function}"
+    if test_method is not None:
+        test_path = f"test_path::{test_method}"
+
+    args = [
+        test_path,
+        "-s",
+        "--verbose",
+    ]
+
+    pytest.main(args)
